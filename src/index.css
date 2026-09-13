@@ -1,12 +1,103 @@
 @import "tailwindcss";
 
 @layer base {
+  /* 1. Box Sizing & Responsive Resets */
+  *, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 2. Prevent Horizontal Scrolling Strictly on All Viewports */
   html {
     scroll-behavior: smooth;
+    max-width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    font-size: 16px; /* Base 16px font size */
+    line-height: 1.6;
+    color: #1e293b;
+    background-color: #f8fafc;
+  }
+
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 3. Fully Responsive Media Elements */
+  img, 
+  video, 
+  canvas, 
+  iframe, 
+  embed, 
+  object {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  svg {
+    max-width: 100%;
+  }
+
+  /* 4. Text Readability Standards (Minimum 16px for Paragraphs on Mobile) */
+  p, 
+  .text-body, 
+  .prose p {
+    font-size: 1rem; /* 16px */
+    line-height: 1.65;
+  }
+
+  /* 5. Mobile Touch Target (Minimum 44x44px for WCAG 2.5.5 Accessibility) */
+  @media (max-width: 768px) {
+    button, 
+    a, 
+    input[type="button"], 
+    input[type="submit"], 
+    input[type="reset"], 
+    [role="button"] {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Prevent iOS Safari auto-zoom on input focus */
+    input, 
+    select, 
+    textarea {
+      font-size: 16px !important;
+      min-height: 44px;
+    }
+
+    /* Column breakdown helper for complex grids */
+    .mobile-stack {
+      flex-direction: column !important;
+      width: 100% !important;
+    }
   }
 }
 
-/* Custom visual glow and gradient animations */
+/* Custom Safe Area Utility for Mobile Notch/Bottom Bar Devices */
+.pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+}
+
+.bottom-safe {
+  bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+}
+
+/* Custom Visual Glow and Gradient Animations */
 @keyframes pulseGlow {
   0%, 100% {
     opacity: 0.4;
@@ -46,4 +137,3 @@
 .animate-marquee-left:hover {
   animation-play-state: paused;
 }
-

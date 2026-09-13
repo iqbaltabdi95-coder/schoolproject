@@ -34,6 +34,7 @@ import { FloatingActions } from './components/FloatingActions';
 import { LayananSiswaBaruPage } from './components/LayananSiswaBaruPage';
 import { PortalAkademikPage } from './components/PortalAkademikPage';
 import { ELibraryPage } from './components/ELibraryPage';
+import { BottomNav } from './components/BottomNav';
 
 const STORAGE_KEY = 'school_portal_custom_config_v1';
 
@@ -58,6 +59,8 @@ export default function App() {
     return 'home';
   });
 
+  const [activeSection, setActiveSection] = useState<string>('beranda');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isPPDBModalOpen, setIsPPDBModalOpen] = useState(false);
   const [isVirtualTourOpen, setIsVirtualTourOpen] = useState(false);
@@ -81,14 +84,31 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const handleNavigate = (page: PageView, scrollToTop: boolean = true) => {
+  const handleNavigate = (page: PageView, anchorOrScrollTop: string | boolean = true) => {
+    setIsMobileMenuOpen(false);
     setCurrentPage(page);
+    
     if (page === 'home') {
+      if (typeof anchorOrScrollTop === 'string' && anchorOrScrollTop.startsWith('#')) {
+        const targetId = anchorOrScrollTop.replace('#', '');
+        window.location.hash = targetId;
+        setActiveSection(targetId);
+        setTimeout(() => {
+          const el = document.getElementById(targetId);
+          if (el) {
+            const navOffset = 80;
+            const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top: Math.max(0, elementPosition - navOffset), behavior: 'smooth' });
+          }
+        }, 50);
+        return;
+      }
       window.location.hash = '';
     } else {
       window.location.hash = page;
     }
-    if (scrollToTop) {
+
+    if (anchorOrScrollTop === true) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -120,7 +140,7 @@ export default function App() {
   const font = FONT_CONFIGS[config.fontPairing] || FONT_CONFIGS['modern'];
 
   return (
-    <div className={`min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300 ${font.bodyClass}`}>
+    <div className={`min-h-screen bg-slate-50 text-slate-800 pb-16 lg:pb-0 transition-colors duration-300 ${font.bodyClass}`}>
       
       {/* 1. Top Bar */}
       <TopBar 
@@ -146,6 +166,8 @@ export default function App() {
         onOpenVirtualTour={() => setIsVirtualTourOpen(true)}
         currentPage={currentPage}
         onNavigate={handleNavigate}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
       />
 
       {/* MAIN VIEW ROUTER */}
@@ -283,6 +305,17 @@ export default function App() {
         isOpen={isVirtualTourOpen}
         onClose={() => setIsVirtualTourOpen(false)}
         config={config}
+      />
+
+      {/* 16. Mobile Bottom Navigation (WCAG 2.5.5 touch friendly) */}
+      <BottomNav 
+        config={config}
+        currentPage={currentPage}
+        activeSection={activeSection}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+        onNavigate={handleNavigate}
+        onOpenPPDB={() => setIsPPDBModalOpen(true)}
       />
 
     </div>

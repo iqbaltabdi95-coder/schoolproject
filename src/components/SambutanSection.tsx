@@ -80,9 +80,9 @@ export const SambutanSection: React.FC<SambutanSectionProps> = ({ config, onOpen
             </div>
 
             {/* Paragraphs */}
-            <div className="space-y-4 text-slate-600 text-sm sm:text-base leading-relaxed mb-8">
+            <div className="space-y-4 text-slate-600 text-base leading-relaxed mb-8">
               {principal.message.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
+                <p key={index} className="text-base leading-relaxed">{paragraph}</p>
               ))}
             </div>
 
@@ -120,7 +120,7 @@ export const SambutanSection: React.FC<SambutanSectionProps> = ({ config, onOpen
             </div>
 
             {/* Principal Signature & Sign-off */}
-            <div className="flex items-center justify-between w-full pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full pt-2">
               <div>
                 <p className="text-xs text-slate-400 font-medium">Hormat kami,</p>
                 <p className="text-sm font-bold text-slate-900 mt-1">{principal.name}</p>
@@ -129,7 +129,7 @@ export const SambutanSection: React.FC<SambutanSectionProps> = ({ config, onOpen
 
               <button
                 onClick={onOpenVirtualTour}
-                className="px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
+                className="min-h-[44px] px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer inline-flex items-center justify-center active:scale-95"
               >
                 Lihat Fasilitas Sekolah →
               </button>

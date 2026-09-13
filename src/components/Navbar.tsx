@@ -10,6 +10,8 @@ interface NavbarProps {
   onOpenVirtualTour: () => void;
   currentPage?: PageView;
   onNavigate?: (page: PageView, scrollToTop?: boolean) => void;
+  isMobileMenuOpen?: boolean;
+  onToggleMobileMenu?: () => void;
 }
 
 const NAV_ITEMS = [
@@ -28,9 +30,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenPPDB,
   onOpenVirtualTour,
   currentPage = 'home',
-  onNavigate
+  onNavigate,
+  isMobileMenuOpen,
+  onToggleMobileMenu
 }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
+  const isMenuOpen = isMobileMenuOpen !== undefined ? isMobileMenuOpen : internalMobileMenuOpen;
+  const toggleMenu = onToggleMobileMenu || (() => setInternalMobileMenuOpen(prev => !prev));
+  const closeMenu = () => {
+    if (onToggleMobileMenu && isMobileMenuOpen) {
+      onToggleMobileMenu();
+    } else {
+      setInternalMobileMenuOpen(false);
+    }
+  };
+
   const [activeSection, setActiveSection] = useState<string>('beranda');
   const isManualScrollRef = useRef(false);
   const scrollTimeoutRef = useRef<number | null>(null);
@@ -116,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleNavClick = (page: PageView, anchor?: string) => {
-    setMobileMenuOpen(false);
+    closeMenu();
 
     if (page !== 'home') {
       if (onNavigate) onNavigate(page);
@@ -239,83 +253,98 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* Mobile hamburger button */}
+          {/* Mobile hamburger button & PPDB CTA with minimum 44px touch targets */}
           <div className="flex lg:hidden items-center gap-2">
             <button
               onClick={onOpenPPDB}
-              className={`px-3 py-1.5 text-xs font-bold text-white rounded-lg cursor-pointer ${theme.btnPrimary}`}
+              className={`min-h-[44px] px-3.5 py-2 text-xs font-bold text-white rounded-xl inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer ${theme.btnPrimary}`}
+              aria-label="Daftar PPDB Online"
             >
-              PPDB
+              <GraduationCap className="w-4 h-4" />
+              <span>PPDB</span>
             </button>
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-              aria-label="Buka Menu"
+              onClick={toggleMenu}
+              className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+              aria-label={isMenuOpen ? "Tutup Navigasi Menu" : "Buka Navigasi Menu"}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMenuOpen ? <X className="w-6 h-6 text-rose-600" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3 shadow-xl animate-in slide-in-from-top-4 duration-200">
+      {/* Mobile Drawer Menu with generous touch targets (min 44px) and smooth hierarchy */}
+      {isMenuOpen && (
+        <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-3 shadow-2xl animate-in slide-in-from-top-4 duration-200 max-h-[80vh] overflow-y-auto">
           
           {/* Layanan & Portals in Mobile */}
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
-            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1.5">Layanan Mandiri & Portal</p>
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1 px-1">Layanan Mandiri & Portal</p>
+            
             <button
-              onClick={() => handleNavClick('layanan')}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer ${
+              onClick={() => {
+                closeMenu();
+                handleNavClick('layanan');
+              }}
+              className={`w-full text-left px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
                 currentPage === 'layanan' ? 'bg-amber-100 text-amber-900' : 'text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-amber-600" />
+              <div className="flex items-center gap-2.5">
+                <GraduationCap className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>Layanan & Siswa Baru (PPDB & Biaya)</span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 -rotate-90 text-slate-400" />
+              <ChevronDown className="w-4 h-4 -rotate-90 text-slate-400 shrink-0" />
             </button>
 
             <button
-              onClick={() => handleNavClick('elibrary')}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer ${
+              onClick={() => {
+                closeMenu();
+                handleNavClick('elibrary');
+              }}
+              className={`w-full text-left px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
                 currentPage === 'elibrary' ? 'bg-sky-100 text-sky-900' : 'text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-sky-600" />
+              <div className="flex items-center gap-2.5">
+                <BookOpen className="w-4 h-4 text-sky-600 shrink-0" />
                 <span>E-Library Digital & Katalog Riset</span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 -rotate-90 text-slate-400" />
+              <ChevronDown className="w-4 h-4 -rotate-90 text-slate-400 shrink-0" />
             </button>
 
             <button
-              onClick={() => handleNavClick('portal')}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer ${
+              onClick={() => {
+                closeMenu();
+                handleNavClick('portal');
+              }}
+              className={`w-full text-left px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
                 currentPage === 'portal' ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-indigo-600" />
+              <div className="flex items-center gap-2.5">
+                <UserCheck className="w-4 h-4 text-indigo-600 shrink-0" />
                 <span>Portal Akademik Siswa & Guru</span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 -rotate-90 text-slate-400" />
+              <ChevronDown className="w-4 h-4 -rotate-90 text-slate-400 shrink-0" />
             </button>
           </div>
 
-          {/* Main Navigation Links in Mobile with Active Rectangle and Text Highlights */}
+          {/* Main Navigation Links in Mobile with Active Highlights */}
           <div className="py-2 border-b border-slate-100">
-            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Navigasi Halaman Utama</p>
+            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2 px-1">Navigasi Halaman Utama</p>
             <nav className="flex flex-col space-y-1">
               {NAV_ITEMS.map((item) => {
                 const isActive = currentPage === 'home' && activeSection === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => handleNavClick('home', item.anchor)}
-                    className={`text-left px-3.5 py-2.5 text-sm rounded-xl cursor-pointer transition-all flex items-center justify-between ${
+                    onClick={() => {
+                      closeMenu();
+                      handleNavClick('home', item.anchor);
+                    }}
+                    className={`text-left px-3.5 py-2.5 min-h-[44px] text-sm rounded-xl cursor-pointer transition-all flex items-center justify-between ${
                       isActive ? 'font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'
                     }`}
                     style={
@@ -331,7 +360,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span>{item.mobileLabel}</span>
                     {isActive && (
                       <span 
-                        className="w-2 h-2 rounded-full shrink-0 ml-2" 
+                        className="w-2.5 h-2.5 rounded-full shrink-0 ml-2" 
                         style={{ backgroundColor: theme.primaryColor }} 
                       />
                     )}
@@ -341,32 +370,32 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
           </div>
 
-          <div className="pt-2 flex flex-col gap-2">
+          <div className="pt-2 flex flex-col gap-2.5">
             <button
               onClick={() => {
-                setMobileMenuOpen(false);
+                closeMenu();
                 onOpenVirtualTour();
               }}
-              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full min-h-[44px] py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
             >
               <span>Jelajah Tur Virtual 360°</span>
             </button>
             <button
               onClick={() => {
-                setMobileMenuOpen(false);
+                closeMenu();
                 onOpenPPDB();
               }}
-              className={`w-full py-2.5 px-4 font-bold text-sm text-white rounded-xl flex items-center justify-center gap-2 cursor-pointer ${theme.btnPrimary}`}
+              className={`w-full min-h-[48px] py-3 px-4 font-bold text-sm text-white rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all ${theme.btnPrimary}`}
             >
-              <GraduationCap className="w-4 h-4" />
+              <GraduationCap className="w-5 h-5" />
               <span>Daftar PPDB Online {config.ppdbStatus.tahunAjaran}</span>
             </button>
             <button
               onClick={() => {
-                setMobileMenuOpen(false);
+                closeMenu();
                 onOpenCustomizer();
               }}
-              className="w-full py-2 px-4 border border-amber-400 bg-amber-50 text-amber-900 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full min-h-[44px] py-2.5 px-4 border border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
             >
               <Sparkles className="w-4 h-4 text-amber-600" />
               <span>Buka Studio Kustomisasi Demo</span>
