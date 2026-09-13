@@ -1,21 +1,16 @@
 import React from 'react';
 import { SchoolConfig } from '../types';
-import { THEME_CONFIGS } from '../data/defaultSchoolData';
-import { Sparkles, MessageCircle, ArrowUp } from 'lucide-react';
+import { MessageCircle, ArrowUp } from 'lucide-react';
 
 interface FloatingActionsProps {
   config: SchoolConfig;
-  onOpenCustomizer: () => void;
-  onOpenPPDB: () => void;
+  onOpenCustomizer?: () => void;
+  onOpenPPDB?: () => void;
 }
 
 export const FloatingActions: React.FC<FloatingActionsProps> = ({
   config,
-  onOpenCustomizer,
-  onOpenPPDB,
 }) => {
-  const theme = THEME_CONFIGS[config.themePreset] || THEME_CONFIGS['indigo-royal'];
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -45,21 +40,6 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
         <MessageCircle className="w-5 h-5 fill-current shrink-0" />
         <span className="hidden sm:inline-block">Tanya PPDB Online</span>
       </a>
-
-      {/* Floating Demo Customizer Button (WCAG 48px touch target) */}
-      <button
-        id="btn-floating-customizer"
-        onClick={onOpenCustomizer}
-        className="group flex items-center gap-2.5 px-4 py-3 min-h-[48px] rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 font-black text-xs shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer ring-4 ring-amber-400/30"
-        title="Buka panel kustomisasi identitas dan warna sekolah instan"
-        aria-label="Mode Presentasi: Ubah Profil Sekolah"
-      >
-        <Sparkles className="w-5 h-5 animate-spin-slow shrink-0" />
-        <span className="flex flex-col text-left leading-none">
-          <span className="text-[10px] uppercase tracking-wider text-slate-900 font-extrabold">Mode Presentasi</span>
-          <span className="text-xs font-black">Ubah Profil Sekolah</span>
-        </span>
-      </button>
 
     </div>
   );

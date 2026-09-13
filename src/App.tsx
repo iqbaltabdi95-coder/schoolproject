@@ -312,10 +312,9 @@ export default function App() {
         config={config}
         currentPage={currentPage}
         activeSection={activeSection}
-        isMobileMenuOpen={isMobileMenuOpen}
-        onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
         onNavigate={handleNavigate}
         onOpenPPDB={() => setIsPPDBModalOpen(true)}
+        onOpenCustomizer={() => setIsCustomizerOpen(true)}
       />
 
     </div>

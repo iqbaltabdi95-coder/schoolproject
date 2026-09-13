@@ -46,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const [activeSection, setActiveSection] = useState<string>('beranda');
+  const [isScrolled, setIsScrolled] = useState(false);
   const isManualScrollRef = useRef(false);
   const scrollTimeoutRef = useRef<number | null>(null);
 
@@ -58,11 +59,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // ScrollSpy: dynamically detect currently visible section during scroll on the landing page
   useEffect(() => {
-    if (currentPage !== 'home') return;
-
     let isThrottled = false;
 
     const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 20);
+
+      if (currentPage !== 'home') return;
       if (isManualScrollRef.current) return;
       if (isThrottled) return;
 
@@ -70,24 +73,24 @@ export const Navbar: React.FC<NavbarProps> = ({
       requestAnimationFrame(() => {
         isThrottled = false;
 
-        const scrollY = window.scrollY;
+        const currentScrollY = window.scrollY;
         const windowHeight = window.innerHeight;
         const documentHeight = document.documentElement.scrollHeight;
 
         // 1. Reached bottom of document -> Kontak
-        if (scrollY + windowHeight >= documentHeight - 60) {
+        if (currentScrollY + windowHeight >= documentHeight - 70) {
           setActiveSection('kontak');
           return;
         }
 
         // 2. Near top of page -> Beranda
-        if (scrollY < 120) {
+        if (currentScrollY < 120) {
           setActiveSection('beranda');
           return;
         }
 
         // 3. Check each section top relative to header offset line (~110px from top)
-        const offsetLine = 110;
+        const offsetLine = 120;
         let currentSection = 'beranda';
 
         for (const item of NAV_ITEMS) {
@@ -168,7 +171,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all duration-300 shadow-sm">
+    <header className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md transition-all duration-300 ${
+      isScrolled ? 'shadow-md border-b border-slate-200/90' : 'shadow-xs border-b border-slate-200/70'
+    }`}>
+      {/* Top Brand Accent Strip */}
+      <div 
+        className="h-[3px] w-full transition-opacity duration-300"
+        style={{
+          background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.secondaryColor})`
+        }}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo & School Name */}
@@ -199,7 +212,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </button>
 
-          {/* Desktop Nav Links - with dynamic theme colored text and rectangular highlight indicator */}
+          {/* Desktop Nav Links - with vibrant theme colored active pill & color transformation on click */}
           <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2 text-sm font-semibold text-slate-700">
             {NAV_ITEMS.map((item) => {
               const isActive = currentPage === 'home' && activeSection === item.id;
@@ -208,22 +221,27 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={item.id}
                   id={`nav-link-${item.id}`}
                   onClick={() => handleNavClick('home', item.anchor)}
-                  className={`px-3.5 py-2 rounded-xl text-sm transition-all duration-200 cursor-pointer ${
+                  className={`px-3.5 py-2 rounded-xl text-sm transition-all duration-300 cursor-pointer relative font-bold ${
                     isActive
-                      ? 'font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold'
+                      ? 'text-white shadow-md transform scale-105'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold'
                   }`}
                   style={
                     isActive
                       ? {
-                          color: theme.primaryColor,
-                          backgroundColor: `${theme.primaryColor}14`,
-                          boxShadow: `inset 0 0 0 1px ${theme.primaryColor}30`,
+                          background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`,
+                          color: '#ffffff',
+                          boxShadow: `0 4px 14px ${theme.primaryColor}40`,
                         }
                       : undefined
                   }
                 >
                   {item.label}
+                  {isActive && (
+                    <span 
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-1 rounded-full bg-amber-400"
+                    />
+                  )}
                 </button>
               );
             })}
