@@ -68,21 +68,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           <span className="text-[10px] tracking-tight">Program</span>
         </button>
 
-        {/* 3. Center Elevated Mode Presentasi (Ubah Profil Sekolah) */}
-        <div className="flex flex-col items-center justify-center -mt-5">
-          <button
-            id="btn-bottom-customizer"
-            onClick={onOpenCustomizer}
-            className="w-13 h-13 min-w-[48px] min-h-[48px] rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 flex flex-col items-center justify-center shadow-xl shadow-amber-500/30 transform active:scale-95 transition-all cursor-pointer ring-4 ring-white"
-            aria-label="Mode Presentasi: Ubah Profil Sekolah"
-            title="Ubah Profil Sekolah & Tema Warna"
-          >
+        {/* 3. Center Elevated Mode Presentasi (Ubah Profil Sekolah) - WCAG 2.5.5 (Min 48x48px touch target) */}
+        <button
+          id="btn-bottom-customizer"
+          onClick={onOpenCustomizer}
+          className="flex flex-col items-center justify-center -mt-6 group cursor-pointer min-w-[56px] min-h-[56px] p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-2xl"
+          aria-label="Mode Presentasi: Ubah Profil Sekolah"
+          title="Ubah Profil Sekolah & Tema Warna"
+        >
+          <div className="w-13 h-13 min-w-[50px] min-h-[50px] rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 flex items-center justify-center shadow-xl shadow-amber-500/30 group-active:scale-95 transition-transform ring-4 ring-white">
             <Sparkles className="w-6 h-6 animate-spin-slow text-slate-950" />
-          </button>
-          <span className="text-[10px] font-black text-amber-700 mt-0.5 tracking-tight">
+          </div>
+          <span className="text-[10px] font-black text-amber-800 mt-0.5 tracking-tight select-none">
             Ubah Profil
           </span>
-        </div>
+        </button>
 
         {/* 4. PPDB Menu Item */}
         <button
