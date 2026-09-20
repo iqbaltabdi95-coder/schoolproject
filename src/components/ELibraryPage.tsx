@@ -1,25 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SchoolConfig, PageView, LibraryBook } from '../types';
 import { THEME_CONFIGS, FONT_CONFIGS } from '../data/defaultSchoolData';
 import { SAMPLE_BOOKS } from '../data/portalAndLibraryData';
+import { SchoolDbService } from '../services/schoolDbService';
+import { generateEbookPdf } from '../utils/pdfGenerator';
 import { 
   ArrowLeft, 
   BookOpen, 
   Search, 
-  Sparkles, 
   Star, 
   Download, 
   BookMarked, 
-  Headphones, 
-  SlidersHorizontal, 
   X, 
   CheckCircle, 
-  Calendar, 
-  Layers, 
-  FileText,
-  Clock,
   Eye,
-  Bookmark
+  Database
 } from 'lucide-react';
 
 interface ELibraryPageProps {
@@ -31,6 +26,7 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
   config,
   onNavigate
 }) => {
+  const [books, setBooks] = useState<LibraryBook[]>(SAMPLE_BOOKS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [selectedBookForReader, setSelectedBookForReader] = useState<LibraryBook | null>(null);
@@ -43,26 +39,42 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
 
   const categories = ['Semua', 'Sains', 'Riset', 'Internasional', 'Sastra', 'Kurikulum', 'Audio'];
 
+  // Subscribe to real-time books from Firestore
+  useEffect(() => {
+    const unsub = SchoolDbService.subscribeLibraryBooks((firestoreBooks) => {
+      if (firestoreBooks && firestoreBooks.length > 0) {
+        setBooks(firestoreBooks);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   const filteredBooks = useMemo(() => {
-    return SAMPLE_BOOKS.filter((book) => {
+    return books.filter((book) => {
       const matchesSearch = 
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.description.toLowerCase().includes(searchQuery.toLowerCase());
+        book.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.isbn.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCat = selectedCategory === 'Semua' || book.category === selectedCategory;
       return matchesSearch && matchesCat;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [books, searchQuery, selectedCategory]);
+
+  const handleOpenBookReader = (book: LibraryBook) => {
+    setSelectedBookForReader(book);
+    SchoolDbService.incrementBookRead(book.id);
+  };
 
   const handleDownloadOffline = (book: LibraryBook) => {
-    setDownloadNotice(`E-Book "${book.title}" sedang diunduh untuk dibaca secara offline.`);
+    generateEbookPdf(config, book);
+    setDownloadNotice(`E-Book "${book.title}" berhasil diunduh dalam format PDF resmi.`);
     setTimeout(() => setDownloadNotice(null), 4000);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
-      
       {/* Page Header Banner */}
       <div 
         className="text-white relative pt-8 pb-16 border-b border-slate-800"
@@ -96,7 +108,7 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
                 Gerbang Literasi & Khazanah Pengetahuan
               </h1>
               <p className="text-sm sm:text-base text-slate-200 mt-3 max-w-2xl leading-relaxed">
-                Akses tanpa batas ke lebih dari 25.000 koleksi buku teks nasional, modul Cambridge, publikasi karya ilmiah siswa, dan ensiklopedia ilmiah digital di {config.name}.
+                Akses tanpa batas ke koleksi buku teks nasional, modul Cambridge, publikasi karya ilmiah siswa, dan ensiklopedia ilmiah digital di {config.name}. Terkelola realtime oleh staff perpustakaan sekolah.
               </p>
             </div>
 
@@ -104,20 +116,20 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
             <div className="lg:col-span-4 flex flex-col gap-3">
               <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-2xl font-black text-cyan-300">25.000+</div>
-                  <div className="text-[11px] text-slate-300">Koleksi Buku Fisik</div>
+                  <div className="text-2xl font-black text-cyan-300">{books.length}</div>
+                  <div className="text-[11px] text-slate-300">Judul di Database</div>
                 </div>
                 <div>
                   <div className="text-2xl font-black text-amber-300">1.450+</div>
-                  <div className="text-[11px] text-slate-300">E-Book Digital</div>
+                  <div className="text-[11px] text-slate-300">Koleksi E-Book</div>
                 </div>
                 <div>
                   <div className="text-2xl font-black text-emerald-300">85+</div>
                   <div className="text-[11px] text-slate-300">Jurnal Internasional</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-black text-purple-300">24/7</div>
-                  <div className="text-[11px] text-slate-300">Akses Cloud Mandiri</div>
+                  <div className="text-2xl font-black text-purple-300">Cloud</div>
+                  <div className="text-[11px] text-slate-300">Firestore Sync</div>
                 </div>
               </div>
             </div>
@@ -125,7 +137,7 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
         </div>
       </div>
 
-      {/* Main Container - elevated with relative z-20 */}
+      {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
         
         {/* Search & Filter Bar */}
@@ -142,7 +154,7 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-4 top-3 text-slate-400 hover:text-slate-600 text-xs"
+                className="absolute right-4 top-3 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
               >
                 Reset
               </button>
@@ -223,7 +235,7 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setSelectedBookForReader(book)}
+                      onClick={() => handleOpenBookReader(book)}
                       className="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-cyan-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -233,7 +245,7 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
                     <button
                       onClick={() => handleDownloadOffline(book)}
                       className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-                      title="Unduh E-Book Offline"
+                      title="Unduh E-Book Offline (PDF)"
                     >
                       <Download className="w-4 h-4" />
                     </button>
@@ -243,122 +255,88 @@ export const ELibraryPage: React.FC<ELibraryPageProps> = ({
             </div>
           ))}
         </div>
-
-        {/* Empty Search State */}
-        {filteredBooks.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8">
-            <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h4 className="text-base font-bold text-slate-800">Tidak ada buku yang sesuai</h4>
-            <p className="text-xs text-slate-500 mt-1">Coba gunakan kata kunci lain atau pilih kategori 'Semua'.</p>
-            <button
-              onClick={() => { setSearchQuery(''); setSelectedCategory('Semua'); }}
-              className="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer"
-            >
-              Reset Pencarian
-            </button>
-          </div>
-        )}
-
       </div>
 
-      {/* MODAL E-READER INTERAKTIF */}
+      {/* Reader Modal */}
       {selectedBookForReader && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className={`rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl border flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200 ${
-            readerDark ? 'bg-slate-900 text-slate-100 border-slate-800' : 'bg-white text-slate-900 border-slate-200'
-          }`}>
-            
-            {/* Reader Header */}
-            <div className={`p-4 sm:p-5 border-b flex items-center justify-between ${
-              readerDark ? 'border-slate-800 bg-slate-950/50' : 'border-slate-200 bg-slate-50'
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div
+            className={`rounded-3xl max-w-3xl w-full shadow-2xl border transition-all duration-300 max-h-[90vh] flex flex-col ${
+              readerDark 
+                ? 'bg-slate-950 border-slate-800 text-slate-100' 
+                : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
+            {/* Modal Header */}
+            <div className={`p-4 sm:p-6 border-b flex items-center justify-between ${
+              readerDark ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-slate-50'
             }`}>
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
-                  <BookOpen className="w-5 h-5" />
-                </div>
+                <BookOpen className="w-6 h-6 text-cyan-500 shrink-0" />
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold line-clamp-1">{selectedBookForReader.title}</h3>
-                  <p className="text-[11px] text-slate-400">{selectedBookForReader.author} • ISBN: {selectedBookForReader.isbn}</p>
+                  <h3 className="font-extrabold text-sm sm:text-base line-clamp-1">{selectedBookForReader.title}</h3>
+                  <p className="text-xs text-slate-400">Oleh: {selectedBookForReader.author} • ISBN: {selectedBookForReader.isbn}</p>
                 </div>
               </div>
 
-              {/* Controls: Font Size, Dark Mode Toggle, Close */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setReaderFontSize(readerFontSize === 'normal' ? 'large' : 'normal')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
-                    readerDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'
-                  }`}
-                  title="Ubah Ukuran Font"
+                  className="px-2.5 py-1 rounded-lg border text-xs font-bold cursor-pointer"
                 >
                   {readerFontSize === 'normal' ? 'A+' : 'A-'}
                 </button>
-
                 <button
                   onClick={() => setReaderDark(!readerDark)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
-                    readerDark ? 'bg-amber-400/20 text-amber-300' : 'bg-slate-200 text-slate-700'
-                  }`}
-                  title="Ganti Mode Gelap/Terang"
+                  className="px-2.5 py-1 rounded-lg border text-xs font-bold cursor-pointer"
                 >
-                  {readerDark ? '☀ Terang' : '🌙 Gelap'}
+                  {readerDark ? '☀️ Terang' : '🌙 Gelap'}
                 </button>
-
-                <button
-                  onClick={() => setSelectedBookForReader(null)}
-                  className="w-8 h-8 rounded-full bg-slate-700/30 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Reader Content Body */}
-            <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6 leading-relaxed">
-              <div className={`p-4 rounded-2xl border ${
-                readerDark ? 'bg-slate-800/60 border-slate-700 text-slate-300' : 'bg-cyan-50/50 border-cyan-100 text-slate-700'
-              } text-xs`}>
-                <div className="font-bold text-cyan-500 uppercase tracking-wider mb-1">Ringkasan Sinopsis:</div>
-                {selectedBookForReader.description}
-              </div>
-
-              {/* Sample Chapter Reading Text */}
-              <div className={`prose max-w-none ${readerFontSize === 'large' ? 'text-base sm:text-lg' : 'text-xs sm:text-sm'}`}>
-                <div className="whitespace-pre-line font-serif leading-relaxed">
-                  {selectedBookForReader.sampleChapterText}
-                </div>
-              </div>
-            </div>
-
-            {/* Reader Footer Actions */}
-            <div className={`p-4 border-t flex flex-wrap items-center justify-between gap-3 ${
-              readerDark ? 'border-slate-800 bg-slate-950/50' : 'border-slate-200 bg-slate-50'
-            }`}>
-              <div className="text-xs text-slate-400">
-                Koleksi Terverifikasi • Lisensi Institusi {config.name}
-              </div>
-
-              <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleDownloadOffline(selectedBookForReader)}
-                  className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="p-1.5 rounded-lg border hover:bg-slate-200/50 cursor-pointer"
+                  title="Unduh E-Book"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Unduh E-Book Lengkap</span>
                 </button>
                 <button
                   onClick={() => setSelectedBookForReader(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-700/20 hover:bg-slate-700/40 text-xs font-bold cursor-pointer"
+                  className="p-1.5 rounded-lg border hover:bg-rose-100 hover:text-rose-600 cursor-pointer"
                 >
-                  Tutup
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
+            {/* Modal Body */}
+            <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
+              <div className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-xs">
+                <strong>Sinopsis Buku:</strong> {selectedBookForReader.description}
+              </div>
+
+              <div className={`prose max-w-none leading-relaxed whitespace-pre-line font-serif ${
+                readerFontSize === 'large' ? 'text-lg' : 'text-sm'
+              }`}>
+                {selectedBookForReader.sampleChapterText}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className={`p-4 border-t flex items-center justify-between text-xs ${
+              readerDark ? 'border-slate-800 text-slate-400' : 'border-slate-100 text-slate-500'
+            }`}>
+              <span>Total: {selectedBookForReader.pages} Halaman • Terkatalog di Gerbang Literasi</span>
+              <button
+                onClick={() => handleDownloadOffline(selectedBookForReader)}
+                className="px-4 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold cursor-pointer flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Unduh Dokumen PDF</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

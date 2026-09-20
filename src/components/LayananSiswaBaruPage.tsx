@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SchoolConfig, PageView } from '../types';
 import { THEME_CONFIGS, FONT_CONFIGS } from '../data/defaultSchoolData';
 import { PPDB_DETAILS } from '../data/portalAndLibraryData';
+import { downloadSchoolDocument } from '../utils/pdfGenerator';
 import { 
   ArrowLeft, 
   GraduationCap, 
@@ -39,14 +40,41 @@ export const LayananSiswaBaruPage: React.FC<LayananSiswaBaruPageProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'jalur' | 'biaya' | 'alur' | 'unduhan' | 'mutasi'>('jalur');
   const [selectedJalur, setSelectedJalur] = useState<'regular' | 'prestasi' | 'tahfidz'>('regular');
+  const [downloadingDoc, setDownloadingDoc] = useState<string | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
   const theme = THEME_CONFIGS[config.themePreset] || THEME_CONFIGS['indigo-royal'];
   const font = FONT_CONFIGS[config.fontPairing] || FONT_CONFIGS['modern'];
 
-  const handleDownload = (docTitle: string) => {
-    setDownloadSuccess(`Mengunduh file: ${docTitle}... File siap dibaca.`);
-    setTimeout(() => setDownloadSuccess(null), 4000);
+  const handleDownload = async (docTitle: string) => {
+    try {
+      setDownloadingDoc(docTitle);
+      await new Promise(resolve => setTimeout(resolve, 350));
+      downloadSchoolDocument(docTitle, config);
+      setDownloadSuccess(`Dokumen "${docTitle}" berhasil digenerasi dan diunduh sesuai data resmi ${config.name} (${config.ppdbStatus.tahunAjaran}).`);
+      setTimeout(() => setDownloadSuccess(null), 6000);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      setDownloadSuccess(`Gagal mengunduh file: ${docTitle}. Silakan coba kembali.`);
+    } finally {
+      setDownloadingDoc(null);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    try {
+      setDownloadingDoc('ALL');
+      for (const doc of PPDB_DETAILS.documents) {
+        downloadSchoolDocument(doc.title, config);
+        await new Promise(resolve => setTimeout(resolve, 400));
+      }
+      setDownloadSuccess(`Seluruh 5 dokumen resmi PPDB ${config.name} berhasil diunduh ke perangkat Anda!`);
+      setTimeout(() => setDownloadSuccess(null), 7000);
+    } catch (err) {
+      console.error('Error downloading all docs:', err);
+    } finally {
+      setDownloadingDoc(null);
+    }
   };
 
   return (
@@ -115,8 +143,16 @@ export const LayananSiswaBaruPage: React.FC<LayananSiswaBaruPageProps> = ({
               </button>
               
               <button
+                onClick={() => setActiveSubTab('unduhan')}
+                className="w-full py-3 px-5 rounded-2xl font-bold text-xs text-amber-300 bg-amber-400/20 hover:bg-amber-400/30 transition-all border border-amber-400/30 flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <Download className="w-4 h-4" />
+                <span>Unduh Brosur & 5 Berkas Resmi PPDB</span>
+              </button>
+
+              <button
                 onClick={onOpenVirtualTour}
-                className="w-full py-3 px-5 rounded-2xl font-bold text-xs text-slate-200 bg-white/10 hover:bg-white/20 transition-all border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-5 rounded-2xl font-bold text-xs text-slate-200 bg-white/10 hover:bg-white/20 transition-all border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Lihat Tur Fasilitas Sekolah 360°</span>
               </button>
@@ -133,9 +169,10 @@ export const LayananSiswaBaruPage: React.FC<LayananSiswaBaruPageProps> = ({
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               onClick={() => setActiveSubTab('jalur')}
-              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+              style={activeSubTab === 'jalur' ? { backgroundColor: theme.primaryColor } : {}}
+              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap min-h-[44px] ${
                 activeSubTab === 'jalur'
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : 'hover:bg-slate-100 text-slate-700'
               }`}
             >
@@ -145,9 +182,10 @@ export const LayananSiswaBaruPage: React.FC<LayananSiswaBaruPageProps> = ({
 
             <button
               onClick={() => setActiveSubTab('alur')}
-              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              style={activeSubTab === 'alur' ? { backgroundColor: theme.primaryColor } : {}}
+              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 min-h-[44px] ${
                 activeSubTab === 'alur'
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : 'hover:bg-slate-100 text-slate-700'
               }`}
             >
@@ -157,9 +195,10 @@ export const LayananSiswaBaruPage: React.FC<LayananSiswaBaruPageProps> = ({
 
             <button
               onClick={() => setActiveSubTab('biaya')}
-              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              style={activeSubTab === 'biaya' ? { backgroundColor: theme.primaryColor } : {}}
+              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 min-h-[44px] ${
                 activeSubTab === 'biaya'
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : 'hover:bg-slate-100 text-slate-700'
               }`}
             >
@@ -169,21 +208,23 @@ export const LayananSiswaBaruPage: React.FC<LayananSiswaBaruPageProps> = ({
 
             <button
               onClick={() => setActiveSubTab('unduhan')}
-              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              style={activeSubTab === 'unduhan' ? { backgroundColor: theme.primaryColor } : {}}
+              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 min-h-[44px] ${
                 activeSubTab === 'unduhan'
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : 'hover:bg-slate-100 text-slate-700'
               }`}
             >
               <Download className="w-4 h-4" />
-              <span>Unduh Brosur & Berkas</span>
+              <span>Unduh Brosur & Berkas Resmi</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('mutasi')}
-              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              style={activeSubTab === 'mutasi' ? { backgroundColor: theme.primaryColor } : {}}
+              className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 min-h-[44px] ${
                 activeSubTab === 'mutasi'
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : 'hover:bg-slate-100 text-slate-700'
               }`}
             >
@@ -536,38 +577,131 @@ export const LayananSiswaBaruPage: React.FC<LayananSiswaBaruPageProps> = ({
         {activeSubTab === 'unduhan' && (
           <div className="space-y-6">
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200">
-              <div className="mb-6">
-                <h3 className="text-xl font-extrabold text-slate-900">
-                  Pusat Dokumen Resmi & Brosur PPDB
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Unduh materi informasi, formulir manual, dan panduan teknis asesmen untuk dipelajari di rumah.
-                </p>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
+                <div>
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>PDF Resmi Terverifikasi</span>
+                    </span>
+                    <span className="text-xs text-slate-400">•</span>
+                    <span className="text-xs text-slate-600 font-medium">
+                      5 Dokumen Format Standar Cetak A4
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+                    Pusat Dokumen Resmi & Brosur PPDB
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                    Unduh materi brosur resmi, formulir fisik cetak, silabus kisi-kisi asesmen, template surat rekomendasi, dan pakta integritas yang disinkronisasi langsung dengan data profil <strong>{config.name}</strong> ({config.ppdbStatus.tahunAjaran}).
+                  </p>
+                </div>
+
+                {/* Batch Download Button */}
+                <button
+                  onClick={handleDownloadAll}
+                  disabled={downloadingDoc !== null}
+                  className="px-5 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md transition-all shrink-0 cursor-pointer min-h-[48px] disabled:opacity-60"
+                  aria-label="Unduh Seluruh 5 Berkas PDF Sekaligus"
+                >
+                  {downloadingDoc === 'ALL' ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                      <span>Mengunduh 5 Dokumen...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 text-amber-400" />
+                      <span>Unduh Semua Berkas (5 PDF)</span>
+                    </>
+                  )}
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {PPDB_DETAILS.documents.map((doc, idx) => (
-                  <div key={idx} className="p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm transition-all flex items-center justify-between gap-4 bg-slate-50/50">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                        <FileText className="w-5 h-5" />
+              {/* In-Card Toast notification */}
+              {downloadSuccess && (
+                <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm font-medium flex items-start gap-3 shadow-xs animate-in fade-in">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-bold text-emerald-800">Dokumen Berhasil Dibuat & Diunduh!</p>
+                    <p className="text-xs text-emerald-700 mt-0.5">{downloadSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                {PPDB_DETAILS.documents.map((doc, idx) => {
+                  const isCurrentDownloading = downloadingDoc === doc.title;
+                  return (
+                    <div 
+                      key={idx} 
+                      className="p-5 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition-all flex flex-col justify-between gap-4 bg-slate-50/70 group"
+                    >
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-200 uppercase font-mono">
+                              PDF Resmi
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {doc.size}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                            {doc.title}
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                            {doc.desc}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900">{doc.title}</h4>
-                        <p className="text-[11px] text-slate-500 line-clamp-1">{doc.desc}</p>
-                        <span className="text-[10px] text-slate-400 font-mono mt-1 inline-block">Ukuran file: {doc.size}</span>
+
+                      <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-3 flex-wrap">
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Tahun Ajaran: <strong className="text-slate-800">{config.ppdbStatus.tahunAjaran}</strong>
+                        </span>
+
+                        <button
+                          onClick={() => handleDownload(doc.title)}
+                          disabled={downloadingDoc !== null}
+                          className="px-4 py-2.5 rounded-xl bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-indigo-600 font-bold text-xs flex items-center gap-2 shrink-0 transition-all shadow-xs cursor-pointer min-h-[44px] min-w-[110px] justify-center disabled:opacity-60"
+                          aria-label={`Unduh berkas resmi: ${doc.title}`}
+                        >
+                          {isCurrentDownloading ? (
+                            <>
+                              <div className="w-3.5 h-3.5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                              <span>Menyiapkan...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Unduh PDF</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
 
-                    <button
-                      onClick={() => handleDownload(doc.title)}
-                      className="px-3 py-2 rounded-xl bg-white hover:bg-indigo-50 border border-slate-200 text-indigo-600 font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Unduh</span>
-                    </button>
-                  </div>
-                ))}
+              {/* Informational Guidance at Bottom */}
+              <div className="mt-6 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    Seluruh dokumen di atas digenerasi secara dinamis mencakup kop resmi, data akreditasi <strong>({config.accreditation})</strong>, rincian biaya, dan kontak sekretariat loket <strong>{config.name}</strong>.
+                  </span>
+                </div>
+                <button
+                  onClick={onOpenPPDB}
+                  className="text-amber-800 hover:text-amber-950 font-bold underline shrink-0 cursor-pointer min-h-[36px] flex items-center"
+                >
+                  Formulir Online &rarr;
+                </button>
               </div>
             </div>
           </div>

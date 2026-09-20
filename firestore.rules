@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Public or portal accessible collections
+    match /school_content/{contentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /library_books/{bookId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /teaching_journals/{journalId} {
+      allow read, write: if true;
+    }
+
+    match /assignment_queue/{assignmentId} {
+      allow read, write: if true;
+    }
+
+    match /student_submissions/{submissionId} {
+      allow read, write: if true;
+    }
+
+    match /counseling_notes/{noteId} {
+      allow read, write: if true;
+    }
+
+    match /spp_bills/{billId} {
+      allow read, write: if true;
+    }
+
+    // Default deny for unmapped documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

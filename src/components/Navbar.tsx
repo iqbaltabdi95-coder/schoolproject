@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SchoolConfig, PageView } from '../types';
+import { SchoolConfig, PageView, UserProfile } from '../types';
 import { THEME_CONFIGS, FONT_CONFIGS } from '../data/defaultSchoolData';
-import { Menu, X, ChevronDown, GraduationCap, Sparkles, Award, BookOpen, Layers, Users, PhoneCall, UserCheck } from 'lucide-react';
+import { Menu, X, ChevronDown, GraduationCap, Sparkles, Award, BookOpen, Layers, Users, PhoneCall, UserCheck, LogIn } from 'lucide-react';
 
 interface NavbarProps {
   config: SchoolConfig;
@@ -12,6 +12,7 @@ interface NavbarProps {
   onNavigate?: (page: PageView, scrollToTop?: boolean) => void;
   isMobileMenuOpen?: boolean;
   onToggleMobileMenu?: () => void;
+  currentUser?: UserProfile | null;
 }
 
 const NAV_ITEMS = [
@@ -32,7 +33,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentPage = 'home',
   onNavigate,
   isMobileMenuOpen,
-  onToggleMobileMenu
+  onToggleMobileMenu,
+  currentUser
 }) => {
   const [internalMobileMenuOpen, setInternalMobileMenuOpen] = useState(false);
   const isMenuOpen = isMobileMenuOpen !== undefined ? isMobileMenuOpen : internalMobileMenuOpen;
@@ -332,21 +334,46 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ChevronDown className="w-4 h-4 -rotate-90 text-slate-400 shrink-0" />
             </button>
 
-            <button
-              onClick={() => {
-                closeMenu();
-                handleNavClick('portal');
-              }}
-              className={`w-full text-left px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
-                currentPage === 'portal' ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <UserCheck className="w-4 h-4 text-indigo-600 shrink-0" />
-                <span>Portal Akademik Siswa & Guru</span>
-              </div>
-              <ChevronDown className="w-4 h-4 -rotate-90 text-slate-400 shrink-0" />
-            </button>
+            {currentUser ? (
+              <button
+                onClick={() => {
+                  closeMenu();
+                  handleNavClick('portal');
+                }}
+                className={`w-full text-left px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
+                  currentPage === 'portal' ? 'bg-indigo-100 text-indigo-950 ring-1 ring-indigo-300' : 'bg-indigo-50/90 text-indigo-900 hover:bg-indigo-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-black uppercase shrink-0">
+                    {currentUser.role === 'it' ? 'A' : currentUser.name.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-xs truncate text-slate-900">{currentUser.name}</p>
+                    <p className="text-[10px] text-indigo-700 font-extrabold uppercase tracking-wider">
+                      {currentUser.role === 'it' ? 'Admin' : currentUser.role}
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className="w-4 h-4 -rotate-90 text-indigo-500 shrink-0" />
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  closeMenu();
+                  handleNavClick('portal');
+                }}
+                className={`w-full text-left px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer transition-colors ${
+                  currentPage === 'portal' ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <LogIn className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <span>Login (Portal Siswa, Guru & Admin)</span>
+                </div>
+                <ChevronDown className="w-4 h-4 -rotate-90 text-slate-400 shrink-0" />
+              </button>
+            )}
           </div>
 
           {/* Main Navigation Links in Mobile with Active Highlights */}

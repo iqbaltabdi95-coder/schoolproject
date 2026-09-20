@@ -118,11 +118,115 @@ export interface FAQItem {
 
 export type PageView = 'home' | 'layanan' | 'portal' | 'elibrary';
 
+export type UserRole = 'guru' | 'siswa' | 'wali' | 'perpustakaan' | 'bendahara' | 'it';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  identityNumber: string; // NIP, NISN, NIK (angka menggunakan pemisah titik)
+  password?: string; // Kata sandi akun
+  phone: string;
+  titleOrClass: string;
+  status: 'aktif' | 'nonaktif';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TeachingJournal {
+  id: string;
+  teacherId: string;
+  teacherName: string;
+  classGrade: string;
+  subject: string;
+  topic: string;
+  timeRange: string;
+  date: string;
+  completed: boolean;
+  attendanceSummary?: string;
+  reflectionNotes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AssignmentQueue {
+  id: string;
+  teacherId: string;
+  teacherName: string;
+  classGrade: string;
+  subject: string;
+  title: string;
+  description: string;
+  deadline: string;
+  type: 'Formatif' | 'Sumatif' | 'Portofolio' | 'Proyek';
+  totalStudents: number;
+  submittedCount: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StudentSubmission {
+  id: string;
+  assignmentId: string;
+  assignmentTitle: string;
+  studentId: string;
+  studentName: string;
+  studentNisn: string;
+  studentClass: string;
+  submissionType: string;
+  fileName: string;
+  notes?: string;
+  status: 'Terkumpul' | 'Dinilai' | 'Revisi';
+  score?: number;
+  feedback?: string;
+  submittedAt: string;
+}
+
+export interface CounselingNote {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentClass: string;
+  parentName: string;
+  authorName: string;
+  authorRole: string; // Wali Kelas / Guru BK
+  category: 'Prestasi & Teladan' | 'Kedisiplinan & Presensi' | 'Akademik' | 'Afektif & Pembinaan';
+  sentiment: 'positif' | 'evaluasi'; // positif = catatan baik / prestasi, evaluasi = catatan bimbingan / afektif
+  title: string;
+  note: string;
+  actionNeeded?: string;
+  date: string;
+  isRead: boolean;
+  createdAt?: string;
+}
+
+export interface SppBill {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentNisn: string;
+  studentClass: string;
+  academicYear: string; // e.g. 2024/2025
+  month: string; // e.g. Juli, Agustus, dll
+  amount: number;
+  dueDate: string; // e.g. 10 Juli 2024
+  status: 'Lunas' | 'Belum Lunas' | 'Menunggu Konfirmasi';
+  vaNumber: string;
+  paidAt?: string;
+  paymentMethod?: string;
+  receiptNumber?: string;
+  recordedBy?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface LibraryBook {
   id: string;
   title: string;
   author: string;
-  category: 'Kurikulum' | 'Internasional' | 'Riset' | 'Sastra' | 'Sains' | 'Audio';
+  category: 'Kurikulum' | 'Internasional' | 'Riset' | 'Sastra' | 'Sains' | 'Audio' | string;
   cover: string;
   year: number;
   pages: number;
@@ -132,5 +236,10 @@ export interface LibraryBook {
   availablePhysical: boolean;
   description: string;
   sampleChapterText: string;
+  downloadUrl?: string;
+  reads?: number;
+  addedBy?: string;
+  createdAt?: string;
 }
+
 

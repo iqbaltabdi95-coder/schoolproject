@@ -190,7 +190,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigate?.('portal')} 
                   className="hover:text-white transition-colors text-left cursor-pointer"
                 >
-                  Portal Siswa & Guru (Smart LMS)
+                  Login (Portal Siswa, Guru & Admin)
                 </button>
               </li>
             </ul>

@@ -1,0 +1,208 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Profil pengguna portal sekolah multi-peran (Guru, Siswa, Orang Tua/Wali, Perpustakaan, Bendahara, TIM IT)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "UID pengguna atau ID profil" },
+        "name": { "type": "string", "description": "Nama lengkap pengguna", "maxLength": 120 },
+        "email": { "type": "string", "description": "Alamat email resmi", "maxLength": 120 },
+        "role": { "type": "string", "description": "Peran portal", "enum": ["guru", "siswa", "wali", "perpustakaan", "bendahara", "it"] },
+        "identityNumber": { "type": "string", "description": "NIP / NISN / NIK", "maxLength": 40 },
+        "phone": { "type": "string", "description": "Nomor kontak WhatsApp", "maxLength": 30 },
+        "titleOrClass": { "type": "string", "description": "Jabatan guru / Kelas siswa / Pekerjaan wali", "maxLength": 100 },
+        "status": { "type": "string", "description": "Status aktif", "enum": ["aktif", "nonaktif"] },
+        "createdAt": { "type": "string", "description": "Waktu pembuatan data ISO string" },
+        "updatedAt": { "type": "string", "description": "Waktu pembaruan data ISO string" }
+      },
+      "required": ["id", "name", "role"]
+    },
+    "TeachingJournal": {
+      "title": "TeachingJournal",
+      "description": "Jurnal kegiatan mengajar harian guru",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik jurnal mengajar" },
+        "teacherId": { "type": "string", "description": "ID Guru pembuat jurnal" },
+        "teacherName": { "type": "string", "description": "Nama Guru pembuat", "maxLength": 120 },
+        "classGrade": { "type": "string", "description": "Kelas yang diajar", "maxLength": 50 },
+        "subject": { "type": "string", "description": "Mata pelajaran", "maxLength": 80 },
+        "topic": { "type": "string", "description": "Topik atau materi pembelajaran", "maxLength": 200 },
+        "timeRange": { "type": "string", "description": "Rentang jam mengajar misal 07.30 - 09.00", "maxLength": 50 },
+        "date": { "type": "string", "description": "Tanggal mengajar (YYYY-MM-DD)", "maxLength": 20 },
+        "completed": { "type": "boolean", "description": "Status pelaksanaan telah terlaksana" },
+        "attendanceSummary": { "type": "string", "description": "Catatan presensi kelas", "maxLength": 255 },
+        "reflectionNotes": { "type": "string", "description": "Refleksi kendala atau capaian siswa", "maxLength": 500 },
+        "createdAt": { "type": "string", "description": "Waktu pembuatan data" },
+        "updatedAt": { "type": "string", "description": "Waktu update data" }
+      },
+      "required": ["id", "teacherName", "classGrade", "subject", "topic"]
+    },
+    "AssignmentQueue": {
+      "title": "AssignmentQueue",
+      "description": "Antrean penilaian formatif dan tugas kelas dari guru",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik tugas/asesmen" },
+        "teacherId": { "type": "string", "description": "ID guru pengampu" },
+        "teacherName": { "type": "string", "description": "Nama guru pengampu", "maxLength": 120 },
+        "classGrade": { "type": "string", "description": "Kelas sasaran", "maxLength": 50 },
+        "subject": { "type": "string", "description": "Mata pelajaran", "maxLength": 80 },
+        "title": { "type": "string", "description": "Judul tugas atau asesmen formatif", "maxLength": 200 },
+        "description": { "type": "string", "description": "Instruksi pengerjaan tugas", "maxLength": 1000 },
+        "deadline": { "type": "string", "description": "Batas waktu pengumpulan", "maxLength": 40 },
+        "type": { "type": "string", "description": "Tipe penilaian: Formatif, Sumatif, Portofolio, atau Proyek", "maxLength": 40 },
+        "totalStudents": { "type": "number", "description": "Jumlah total siswa di kelas" },
+        "submittedCount": { "type": "number", "description": "Jumlah siswa yang telah mengumpulkan" },
+        "createdAt": { "type": "string", "description": "Waktu pembuatan data" },
+        "updatedAt": { "type": "string", "description": "Waktu update data" }
+      },
+      "required": ["id", "teacherName", "classGrade", "subject", "title"]
+    },
+    "StudentSubmission": {
+      "title": "StudentSubmission",
+      "description": "Pengumpulan tugas dan asesmen digital oleh siswa",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik pengumpulan tugas" },
+        "assignmentId": { "type": "string", "description": "ID tugas yang dikumpulkan" },
+        "assignmentTitle": { "type": "string", "description": "Judul tugas", "maxLength": 200 },
+        "studentId": { "type": "string", "description": "ID siswa" },
+        "studentName": { "type": "string", "description": "Nama siswa", "maxLength": 120 },
+        "studentNisn": { "type": "string", "description": "NISN siswa", "maxLength": 30 },
+        "studentClass": { "type": "string", "description": "Kelas siswa", "maxLength": 50 },
+        "submissionType": { "type": "string", "description": "Jenis unggahan misal file, dokumen, ringkasan", "maxLength": 50 },
+        "fileName": { "type": "string", "description": "Nama berkas tugas digital", "maxLength": 200 },
+        "notes": { "type": "string", "description": "Catatan pengantar dari siswa", "maxLength": 500 },
+        "status": { "type": "string", "description": "Status pengumpulan: Terkumpul, Dinilai, Revisi", "enum": ["Terkumpul", "Dinilai", "Revisi"] },
+        "score": { "type": "number", "description": "Nilai capaian asesmen (0 - 100)" },
+        "feedback": { "type": "string", "description": "Umpan balik dari guru pengampu", "maxLength": 500 },
+        "submittedAt": { "type": "string", "description": "Waktu pengumpulan" }
+      },
+      "required": ["id", "assignmentId", "studentName", "fileName"]
+    },
+    "CounselingNote": {
+      "title": "CounselingNote",
+      "description": "Buku penghubung dan catatan wali kelas atau guru BK untuk orang tua/wali siswa",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik catatan konseling/penghubung" },
+        "studentId": { "type": "string", "description": "ID siswa terkait" },
+        "studentName": { "type": "string", "description": "Nama siswa", "maxLength": 120 },
+        "studentClass": { "type": "string", "description": "Kelas siswa", "maxLength": 50 },
+        "parentName": { "type": "string", "description": "Nama orang tua / wali", "maxLength": 120 },
+        "authorName": { "type": "string", "description": "Nama Wali Kelas / Guru BK pembuat", "maxLength": 120 },
+        "authorRole": { "type": "string", "description": "Peran pembuat (Wali Kelas / Guru BK)", "maxLength": 50 },
+        "category": { "type": "string", "description": "Kategori catatan: Prestasi & Teladan, Kedisiplinan & Presensi, Akademik, atau Afektif & Pembinaan", "maxLength": 60 },
+        "sentiment": { "type": "string", "description": "Sifat catatan: positif (pujian/prestasi) atau evaluasi (perlu bimbingan/perhatian)", "enum": ["positif", "evaluasi"] },
+        "title": { "type": "string", "description": "Judul pokok catatan", "maxLength": 200 },
+        "note": { "type": "string", "description": "Isi lengkap catatan perkembangan siswa", "maxLength": 1000 },
+        "actionNeeded": { "type": "string", "description": "Tindak lanjut yang diharapkan dari orang tua", "maxLength": 500 },
+        "date": { "type": "string", "description": "Tanggal catatan (YYYY-MM-DD)", "maxLength": 20 },
+        "isRead": { "type": "boolean", "description": "Sudah dibaca oleh orang tua" },
+        "createdAt": { "type": "string", "description": "Waktu pembuatan data" }
+      },
+      "required": ["id", "studentName", "authorName", "category", "sentiment", "title", "note"]
+    },
+    "LibraryBook": {
+      "title": "LibraryBook",
+      "description": "Koleksi buku dan e-book di Gerbang Literasi & Khazanah Pengetahuan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID unik buku perpustakaan" },
+        "title": { "type": "string", "description": "Judul buku / e-book", "maxLength": 200 },
+        "author": { "type": "string", "description": "Penulis atau penyusun", "maxLength": 120 },
+        "category": { "type": "string", "description": "Kategori buku (Sains, Riset, Sastra, Kurikulum, Internasional, dll)", "maxLength": 60 },
+        "year": { "type": "number", "description": "Tahun terbit" },
+        "isbn": { "type": "string", "description": "Nomor ISBN", "maxLength": 40 },
+        "pages": { "type": "number", "description": "Jumlah halaman" },
+        "rating": { "type": "number", "description": "Rating buku (0-5)" },
+        "reads": { "type": "number", "description": "Frekuensi dibaca / diakses" },
+        "coverUrl": { "type": "string", "description": "URL gambar sampul buku", "maxLength": 500 },
+        "downloadUrl": { "type": "string", "description": "URL berkas e-book untuk unduhan", "maxLength": 500 },
+        "description": { "type": "string", "description": "Sinopsis dan intisari buku", "maxLength": 1500 },
+        "addedBy": { "type": "string", "description": "Nama staf perpustakaan pengelola", "maxLength": 120 },
+        "createdAt": { "type": "string", "description": "Waktu penambahan buku" },
+        "updatedAt": { "type": "string", "description": "Waktu pembaruan buku" }
+      },
+      "required": ["id", "title", "author", "category", "description"]
+    },
+    "SppBill": {
+      "title": "SppBill",
+      "description": "Data tagihan SPP dan administrasi keuangan sekolah sesuai standar Indonesia",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Nomor transaksi / ID tagihan SPP" },
+        "studentId": { "type": "string", "description": "ID siswa terkait" },
+        "studentName": { "type": "string", "description": "Nama siswa", "maxLength": 120 },
+        "studentNisn": { "type": "string", "description": "NISN siswa", "maxLength": 30 },
+        "studentClass": { "type": "string", "description": "Kelas siswa", "maxLength": 50 },
+        "academicYear": { "type": "string", "description": "Tahun Ajaran misal 2024/2025", "maxLength": 30 },
+        "month": { "type": "string", "description": "Bulan tagihan misal Juli, Agustus, dll", "maxLength": 30 },
+        "amount": { "type": "number", "description": "Nominal tagihan SPP dalam Rupiah" },
+        "dueDate": { "type": "string", "description": "Batas waktu pembayaran (tanggal 10 setiap bulan)", "maxLength": 30 },
+        "status": { "type": "string", "description": "Status pembayaran: Lunas, Belum Lunas, Menunggu Konfirmasi", "enum": ["Lunas", "Belum Lunas", "Menunggu Konfirmasi"] },
+        "vaNumber": { "type": "string", "description": "Nomor Virtual Account pembayaran bank", "maxLength": 50 },
+        "paidAt": { "type": "string", "description": "Tanggal pelunasan pembayaran", "maxLength": 40 },
+        "paymentMethod": { "type": "string", "description": "Metode pembayaran (Transfer VA, Loket Tunai, QRIS)", "maxLength": 50 },
+        "receiptNumber": { "type": "string", "description": "Nomor kuitansi resmi bendahara", "maxLength": 60 },
+        "recordedBy": { "type": "string", "description": "Nama bendahara yang memproses", "maxLength": 120 },
+        "notes": { "type": "string", "description": "Catatan tambahan kwitansi atau keringanan", "maxLength": 300 },
+        "createdAt": { "type": "string", "description": "Waktu pembuatan tagihan" },
+        "updatedAt": { "type": "string", "description": "Waktu update tagihan" }
+      },
+      "required": ["id", "studentName", "studentClass", "academicYear", "month", "amount", "status"]
+    },
+    "SchoolWebsiteContent": {
+      "title": "SchoolWebsiteContent",
+      "description": "Pengelolaan konten web sekolah (beranda, profil, program, prestasi, fasilitas, berita, kontak) oleh TIM IT",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Kunci dokumen konten (misal 'live_config')" },
+        "schoolConfig": { "type": "object", "description": "Konfigurasi utama sekolah dan identitas kontak" },
+        "programs": { "type": "array", "description": "Daftar program unggulan sekolah" },
+        "achievements": { "type": "array", "description": "Daftar prestasi siswa dan sekolah" },
+        "facilities": { "type": "array", "description": "Daftar fasilitas kampus" },
+        "news": { "type": "array", "description": "Daftar warta dan berita sekolah" },
+        "updatedBy": { "type": "string", "description": "Nama staf IT administrator yang memperbarui", "maxLength": 120 },
+        "updatedAt": { "type": "string", "description": "Waktu terakhir diperbarui" }
+      },
+      "required": ["id", "schoolConfig"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Daftar identitas pengguna, guru, staf perpustakaan, bendahara, dan admin IT"
+    },
+    "/teaching_journals/{journalId}": {
+      "schema": "TeachingJournal",
+      "description": "Jurnal kegiatan mengajar harian guru"
+    },
+    "/assignment_queue/{assignmentId}": {
+      "schema": "AssignmentQueue",
+      "description": "Antrean penilaian formatif dan penugasan kelas"
+    },
+    "/student_submissions/{submissionId}": {
+      "schema": "StudentSubmission",
+      "description": "Koleksi unggahan berkas tugas dan asesmen digital dari siswa"
+    },
+    "/counseling_notes/{noteId}": {
+      "schema": "CounselingNote",
+      "description": "Buku penghubung dan catatan bimbingan konseling untuk orang tua siswa"
+    },
+    "/library_books/{bookId}": {
+      "schema": "LibraryBook",
+      "description": "Koleksi katalog buku dan e-book Gerbang Literasi perpustakaan sekolah"
+    },
+    "/spp_bills/{billId}": {
+      "schema": "SppBill",
+      "description": "Database tagihan dan pembayaran SPP sekolah"
+    },
+    "/school_content/{contentId}": {
+      "schema": "SchoolWebsiteContent",
+      "description": "Data konten dinamis beranda, profil, program, prestasi, fasilitas, berita, dan kontak sekolah"
+    }
+  }
+}

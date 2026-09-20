@@ -1,17 +1,30 @@
 import React from 'react';
-import { SchoolConfig, PageView } from '../types';
+import { SchoolConfig, PageView, UserProfile } from '../types';
 import { THEME_CONFIGS } from '../data/defaultSchoolData';
-import { Phone, MessageCircle, Clock, BookOpen, UserCheck, GraduationCap } from 'lucide-react';
+import { Phone, MessageCircle, Clock, BookOpen, LogIn, GraduationCap, User } from 'lucide-react';
 
 interface TopBarProps {
   config: SchoolConfig;
   onOpenCustomizer?: () => void;
   onNavigate?: (page: PageView) => void;
   currentPage?: PageView;
+  currentUser?: UserProfile | null;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ config, onNavigate, currentPage }) => {
+export const TopBar: React.FC<TopBarProps> = ({ config, onNavigate, currentPage, currentUser }) => {
   const theme = THEME_CONFIGS[config.themePreset] || THEME_CONFIGS['indigo-royal'];
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'siswa': return 'Siswa';
+      case 'guru': return 'Guru';
+      case 'wali': return 'Wali';
+      case 'perpustakaan': return 'Pustaka';
+      case 'bendahara': return 'Bendahara';
+      case 'it': return 'Admin';
+      default: return role;
+    }
+  };
 
   return (
     <div id="top-bar" className="bg-slate-900 text-slate-300 text-xs border-b border-slate-800 transition-colors duration-300">
@@ -43,7 +56,7 @@ export const TopBar: React.FC<TopBarProps> = ({ config, onNavigate, currentPage 
           </a>
         </div>
 
-        {/* Right: Layanan & Siswa Baru, E-Library, Portal Siswa & Guru (Desktop / Tablet) */}
+        {/* Right: Layanan & Siswa Baru, E-Library, Login Portal (Desktop / Tablet) */}
         <div className="hidden lg:flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             id="btn-topbar-layanan"
@@ -73,19 +86,40 @@ export const TopBar: React.FC<TopBarProps> = ({ config, onNavigate, currentPage 
             <span className="font-medium">E-Library</span>
           </button>
 
-          <button
-            id="btn-topbar-portal"
-            onClick={() => onNavigate?.('portal')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer min-h-[36px] ${
-              currentPage === 'portal' 
-                ? 'text-indigo-400 bg-indigo-400/10 font-bold ring-1 ring-indigo-400/30' 
-                : 'text-slate-300 hover:text-indigo-300 hover:bg-slate-800'
-            }`}
-            title="Buka Portal Akademik Siswa, Guru & Orang Tua"
-          >
-            <UserCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span className="font-medium">Portal Siswa & Guru</span>
-          </button>
+          {currentUser ? (
+            <button
+              id="btn-topbar-portal"
+              onClick={() => onNavigate?.('portal')}
+              className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-all cursor-pointer min-h-[36px] ${
+                currentPage === 'portal' 
+                  ? 'bg-indigo-600 text-white font-bold ring-2 ring-indigo-400/60 shadow-sm' 
+                  : 'text-indigo-100 hover:text-white bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 shadow-xs'
+              }`}
+              title={`Akun Aktif: ${currentUser.name} (${getRoleLabel(currentUser.role)}) — Klik untuk ke Portal`}
+            >
+              <div className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px] font-black uppercase ring-1 ring-white/20">
+                {currentUser.role === 'it' ? 'A' : currentUser.name.charAt(0)}
+              </div>
+              <span className="font-bold text-xs max-w-[130px] truncate text-white">{currentUser.name}</span>
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/40 text-indigo-200 border border-indigo-400/30 uppercase tracking-wider">
+                {getRoleLabel(currentUser.role)}
+              </span>
+            </button>
+          ) : (
+            <button
+              id="btn-topbar-portal"
+              onClick={() => onNavigate?.('portal')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer min-h-[36px] ${
+                currentPage === 'portal' 
+                  ? 'text-indigo-300 bg-indigo-500/20 font-bold ring-1 ring-indigo-400/40 shadow-xs' 
+                  : 'text-indigo-300 hover:text-white hover:bg-indigo-600/30'
+              }`}
+              title="Masuk ke Portal Sekolah (Login Siswa, Guru, Wali & Staf)"
+            >
+              <LogIn className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+              <span className="font-bold">Login</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

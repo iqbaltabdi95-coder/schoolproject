@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SchoolConfig, PageView } from './types';
+import { SchoolConfig, PageView, UserProfile } from './types';
 import { 
   DEFAULT_SCHOOL_CONFIG, 
   DEFAULT_PROGRAMS, 
@@ -35,6 +35,7 @@ import { LayananSiswaBaruPage } from './components/LayananSiswaBaruPage';
 import { PortalAkademikPage } from './components/PortalAkademikPage';
 import { ELibraryPage } from './components/ELibraryPage';
 import { BottomNav } from './components/BottomNav';
+import { SchoolDbService } from './services/schoolDbService';
 
 const STORAGE_KEY = 'school_portal_custom_config_v1';
 
@@ -65,6 +66,16 @@ export default function App() {
   const [isPPDBModalOpen, setIsPPDBModalOpen] = useState(false);
   const [isVirtualTourOpen, setIsVirtualTourOpen] = useState(false);
 
+  // Authentication State synchronized across navigation
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('school_auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   // Sync hash changes
   useEffect(() => {
     const handleHashChange = () => {
@@ -82,6 +93,26 @@ export default function App() {
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Real-time synchronization of school content from Cloud Firestore
+  useEffect(() => {
+    const unsubscribe = SchoolDbService.listenToWebsiteContent((content) => {
+      if (content?.schoolConfig) {
+        setConfig((prev) => ({
+          ...DEFAULT_SCHOOL_CONFIG,
+          ...prev,
+          ...content.schoolConfig
+        }));
+      }
+    });
+    return () => {
+      try {
+        unsubscribe();
+      } catch (err) {
+        console.warn('Error unsubscribing Firestore listener:', err);
+      }
+    };
   }, []);
 
   const handleNavigate = (page: PageView, anchorOrScrollTop: string | boolean = true) => {
@@ -123,7 +154,7 @@ export default function App() {
     // Update document title dynamically to reflect current school name & view
     const viewTitle = 
       currentPage === 'layanan' ? 'Pusat Layanan & PPDB' :
-      currentPage === 'portal' ? 'Portal Siswa & Guru' :
+      currentPage === 'portal' ? 'Login Portal' :
       currentPage === 'elibrary' ? 'E-Library & Literasi' : 'Portal Resmi Sekolah Modern';
     document.title = `${config.name} — ${viewTitle}`;
   }, [config, currentPage]);
@@ -148,6 +179,7 @@ export default function App() {
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
         currentPage={currentPage}
         onNavigate={handleNavigate}
+        currentUser={currentUser}
       />
 
       {/* 2. Running Announcement Ticker */}
@@ -168,6 +200,7 @@ export default function App() {
         onNavigate={handleNavigate}
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+        currentUser={currentUser}
       />
 
       {/* MAIN VIEW ROUTER */}
@@ -184,6 +217,9 @@ export default function App() {
         <PortalAkademikPage 
           config={config}
           onNavigate={handleNavigate}
+          onUpdateConfig={setConfig}
+          currentUser={currentUser}
+          onUserChange={setCurrentUser}
         />
       )}
 

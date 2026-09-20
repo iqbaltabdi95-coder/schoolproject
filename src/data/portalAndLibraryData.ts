@@ -158,7 +158,7 @@ export const MOCK_STUDENT_DATA = {
 
 export const MOCK_TEACHER_DATA = {
   name: 'Dr. Hendra Gunawan, M.Si',
-  nip: '19790514 200501 1 003',
+  nip: '19790514.200501.1.003',
   position: 'Ketua Laboratorium Sains & Guru Pengampu Fisika',
   classesTaught: ['XI Sains 1', 'XI Sains 2', 'XII Riset Unggulan'],
   todayClasses: [

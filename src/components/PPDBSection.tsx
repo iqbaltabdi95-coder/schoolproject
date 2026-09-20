@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SchoolConfig } from '../types';
 import { THEME_CONFIGS, FONT_CONFIGS } from '../data/defaultSchoolData';
+import { generateBrosurPPDB } from '../utils/pdfGenerator';
 import { 
   GraduationCap, 
   FileText, 
@@ -20,9 +21,18 @@ interface PPDBSectionProps {
 }
 
 export const PPDBSection: React.FC<PPDBSectionProps> = ({ config, onOpenPPDB }) => {
+  const [isDownloadingBrosur, setIsDownloadingBrosur] = useState(false);
   const theme = THEME_CONFIGS[config.themePreset] || THEME_CONFIGS['indigo-royal'];
   const font = FONT_CONFIGS[config.fontPairing] || FONT_CONFIGS['modern'];
   const { ppdbStatus } = config;
+
+  const handleDownloadBrosur = () => {
+    setIsDownloadingBrosur(true);
+    setTimeout(() => {
+      generateBrosurPPDB(config);
+      setIsDownloadingBrosur(false);
+    }, 400);
+  };
 
   const steps = [
     {
@@ -99,15 +109,25 @@ export const PPDBSection: React.FC<PPDBSectionProps> = ({ config, onOpenPPDB }) 
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <a
-                href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, '')}?text=Halo%20Admin%20${encodeURIComponent(config.name)},%20mohon%20kirimkan%20e-Brosur%20dan%20rincian%20biaya%20PPDB%20${ppdbStatus.tahunAjaran}`}
-                target="_blank"
-                rel="noreferrer"
-                className="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 border border-white/20 transition-all"
+              <button
+                type="button"
+                onClick={handleDownloadBrosur}
+                disabled={isDownloadingBrosur}
+                className="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 border border-white/20 transition-all cursor-pointer min-h-[44px] disabled:opacity-60"
+                aria-label="Unduh Brosur Resmi dan Rincian Biaya PPDB dalam format PDF"
               >
-                <Download className="w-4 h-4" />
-                <span>Unduh e-Brosur & Biaya</span>
-              </a>
+                {isDownloadingBrosur ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                    <span>Membuat PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 text-amber-300" />
+                    <span>Unduh e-Brosur & Biaya (PDF)</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
